@@ -28,7 +28,11 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
                                                      description = 'Memory layer for the kernel',
                                                      architectures = ["Intel32", "Intel64"]),
             requirements.SymbolTableRequirement(name = "darwin", description = "Mac kernel symbols"),
-            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0)),
+            requirements.ListRequirement(name = 'pid',
+                                         description = 'Filter on specific process IDs',
+                                         element_type = int,
+                                         optional = True)
         ]
 
     def _generator(self, tasks):
@@ -84,7 +88,7 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
                 yield (0, (int(task.p_pid), task_name, hist.get_time_object(), hist.get_command()))
 
     def run(self):
-        filter_func = tasks.Tasks.create_pid_filter([self.config.get('pid', None)])
+        filter_func = tasks.Tasks.create_pid_filter(self.config.get('pid', None))
 
         return renderers.TreeGrid([("PID", int), ("Process", str), ("CommandTime", datetime.datetime),
                                    ("Command", str)],
@@ -95,7 +99,7 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
                                                              filter_func = filter_func)))
 
     def generate_timeline(self):
-        filter_func = tasks.Tasks.create_pid_filter([self.config.get('pid', None)])
+        filter_func = tasks.Tasks.create_pid_filter(self.config.get('pid', None))
 
         for row in self._generator(
                 tasks.Tasks.list_tasks(self.context,

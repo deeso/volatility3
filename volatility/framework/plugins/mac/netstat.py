@@ -26,7 +26,11 @@ class Netstat(plugins.PluginInterface):
                                                      description = 'Kernel Address Space',
                                                      architectures = ["Intel32", "Intel64"]),
             requirements.SymbolTableRequirement(name = "darwin", description = "Mac Kernel"),
-            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0)),
+            requirements.ListRequirement(name = 'pid',
+                                         description = 'Filter on specific process IDs',
+                                         element_type = int,
+                                         optional = True)
         ]
 
     @classmethod
@@ -67,7 +71,7 @@ class Netstat(plugins.PluginInterface):
                 yield task_name, pid, socket
 
     def _generator(self):
-        filter_func = tasks.Tasks.create_pid_filter([self.config.get('pid', None)])
+        filter_func = tasks.Tasks.create_pid_filter(self.config.get('pid', None))
 
         for task_name, pid, socket in self.list_sockets(self.context,
                                                         self.config['primary'],

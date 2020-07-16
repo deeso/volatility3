@@ -23,7 +23,11 @@ class Lsof(plugins.PluginInterface):
                                                      description = 'Kernel Address Space',
                                                      architectures = ["Intel32", "Intel64"]),
             requirements.SymbolTableRequirement(name = "darwin", description = "Mac Kernel"),
-            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'tasks', plugin = tasks.Tasks, version = (1, 0, 0)),
+            requirements.ListRequirement(name = 'pid',
+                                         description = 'Filter on specific process IDs',
+                                         element_type = int,
+                                         optional = True)
         ]
 
     def _generator(self, tasks):
@@ -36,7 +40,7 @@ class Lsof(plugins.PluginInterface):
                     yield (0, (pid, fd, filepath))
 
     def run(self):
-        filter_func = tasks.Tasks.create_pid_filter([self.config.get('pid', None)])
+        filter_func = tasks.Tasks.create_pid_filter(self.config.get('pid', None))
 
         return renderers.TreeGrid([("PID", int), ("File Descriptor", int), ("File Path", str)],
                                   self._generator(
